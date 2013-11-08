@@ -1,3 +1,6 @@
+# ignore installation folder
+installation/*
+
 # ignore all object files
 *.o
 *.d
