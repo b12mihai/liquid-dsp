@@ -46,6 +46,27 @@ extern "C" {
 #define LIQUID_VERSION          "1.2.0"
 #define LIQUID_VERSION_NUMBER   1002000
 
+
+//
+// MB: This is a function which shows where an assertion failed
+// TODO: enhance it to show in which thread it fails
+// and replace assert(0) with a fored crash
+//
+
+#include <assert.h>
+
+#define ASSERT(cond) \
+do { \
+	if(!(cond)) { \
+		printf("Assertion %s failed in %s at line: %d \n", #cond, __FILE__, __LINE__); \
+		assert(0); } \
+} while(0)
+
+
+// MB: Fast bitwise maximum and minimum computation between numbers
+#define MAXIMUM(x, y) (x) ^ (((x) ^ (y)) & -((x) < (y)))
+#define MINIMUM(x, y) (y) ^ (((x) ^ (y)) & -((x) < (y)))
+
 //
 // Run-time library version numbers
 //
