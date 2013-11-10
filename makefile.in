@@ -1385,6 +1385,7 @@ example_programs :=						\
 	examples/kbd_window_example				\
 	examples/lpc_example					\
 	examples/libliquid_example				\
+	examples/linsolve_all_example				\
 	examples/matched_filter_example				\
 	examples/math_lngamma_example				\
 	examples/math_primitive_root_example			\
