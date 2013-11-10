@@ -27,7 +27,7 @@ config.h.in
 config.h.in~
 config.log
 config.status
-makefile
+#makefile
 xautotest
 *.m
 
