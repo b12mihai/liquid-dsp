@@ -61,13 +61,14 @@ void MATRIX(_linsolve)(T *          _A,
     T M[_n*_n + _n];    // allocate array
     unsigned int m=0;   // output matrix index counter
     unsigned int a=0;   // input matrix index counter
+    printf("\n");
     for (r=0; r<_n; r++) {
         for (c=0; c<_n; c++)
             M[m++] = _A[a++];
 
         M[m++] = _b[r];
     }
-
+    printf("\n");
     // run Gauss-Jordan elimination on M
     // T:
     //  1   0   0   ... 0   x1
