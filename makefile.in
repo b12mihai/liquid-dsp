@@ -66,7 +66,7 @@ RANLIB	:= ranlib
 INCLUDE_CFLAGS	= $(addprefix -I ,$(include_dirs))
 CONFIG_CFLAGS	= @ARCH_OPTION@ @PROFILE_OPTION@ @DEBUG_OPTION@ @SIMD_FLAGS@
 # -g : debugging info
-CFLAGS		+= $(INCLUDE_CFLAGS) -g -O2 -Wall -fPIC $(CONFIG_CFLAGS)
+CFLAGS		+= $(INCLUDE_CFLAGS) -g -O2 -Wall -fPIC -fopenmp $(CONFIG_CFLAGS)
 LDFLAGS		+= @LIBS@
 ARFLAGS		= r
 PATHSEP		= /
@@ -1339,6 +1339,7 @@ example_programs :=						\
 	examples/complementary_codes_example			\
 	examples/crc_example					\
 	examples/cgsolve_example				\
+	examples/cgsolve_serial					\
 	examples/cvsd_example					\
 	examples/detector_cccf_example				\
 	examples/dotprod_rrrf_example				\

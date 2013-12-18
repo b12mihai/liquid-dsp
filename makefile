@@ -46,7 +46,7 @@ BUGREPORT := joseph@liquidsdr.org
 
 # paths
 srcdir = .
-prefix = /home/mihai/anul_IV/sem1/app/liquid-dsp/installation
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 include_dirs	:= . include
@@ -54,7 +54,7 @@ vpath %.h $(include_dirs)
 modulesdir = src
 
 # programs
-CC = gcc
+CC = mpicc
 MV	:= mv -f
 RM	:= rm -f
 SED	:= /bin/sed
@@ -64,15 +64,12 @@ RANLIB	:= ranlib
 
 # flags
 INCLUDE_CFLAGS	= $(addprefix -I ,$(include_dirs))
-CONFIG_CFLAGS	=     -mmmx -msse -msse2
+CONFIG_CFLAGS	=     -mavx
 # -g : debugging info
-CFLAGS		+= $(INCLUDE_CFLAGS) -g -O2 -Wall -fPIC $(CONFIG_CFLAGS)
+CFLAGS		+= $(INCLUDE_CFLAGS) -g -O2 -Wall -fPIC -fopenmp $(CONFIG_CFLAGS)
 LDFLAGS		+= -lm -lc 
 ARFLAGS		= r
 PATHSEP		= /
-
-# preprocessor user defined variables (with -D)
-# DEFINES = -DDEBUG -DRANDOM_DATA
 
 # 
 # liquid headers
@@ -174,7 +171,7 @@ buffer_benchmarks :=						\
 # MODULE : dotprod
 #
 dotprod_objects :=						\
-	src/dotprod/src/dotprod_cccf.mmx.o                        src/dotprod/src/dotprod_crcf.mmx.o                        src/dotprod/src/dotprod_rrrf.mmx.o                        src/dotprod/src/sumsq.mmx.o						\
+	src/dotprod/src/dotprod_cccf.o                        src/dotprod/src/dotprod_crcf.o                        src/dotprod/src/dotprod_rrrf.o                        src/dotprod/src/sumsq.o						\
 
 src/dotprod/src/dotprod_cccf.o : %.o : %.c $(headers) src/dotprod/src/dotprod.c
 
@@ -1342,6 +1339,7 @@ example_programs :=						\
 	examples/complementary_codes_example			\
 	examples/crc_example					\
 	examples/cgsolve_example				\
+	examples/cgsolve_serial					\
 	examples/cvsd_example					\
 	examples/detector_cccf_example				\
 	examples/dotprod_rrrf_example				\
@@ -1388,6 +1386,7 @@ example_programs :=						\
 	examples/kbd_window_example				\
 	examples/lpc_example					\
 	examples/libliquid_example				\
+	examples/linsolve_all_example				\
 	examples/matched_filter_example				\
 	examples/math_lngamma_example				\
 	examples/math_primitive_root_example			\
@@ -1425,7 +1424,6 @@ example_programs :=						\
 	examples/wdelayf_example				\
 	examples/windowf_example				\
 	examples/ricek_channel_example				\
-	examples/linsolve_all_example              \
 	
 
 #	examples/metadata_example
@@ -1442,10 +1440,6 @@ EXAMPLES_LDFLAGS = $(LDFLAGS)
 $(example_objects): %.o : %.c
 
 $(example_programs): % : %.o libliquid.a
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-
-#dct_compressor is special because we need tga
-examples/dct_compressor: examples/dct_compressor.c tga/targa.c libliquid.a
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 # clean examples

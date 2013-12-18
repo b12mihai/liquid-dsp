@@ -1,0 +1,6 @@
+
+
+mpicc -I . -I include -g -O2 -Wall -fPIC -mmmx -msse -msse2 -fopenmp   -c -o examples/cgsolve_example.o examples/cgsolve_example.c
+
+mpicc -I . -I include -g -O2 -Wall -fPIC -mmmx -msse -msse2 -fopenmp examples/cgsolve_example.o libliquid.a -o  examples/cgsolve_example -lm -lc
+
