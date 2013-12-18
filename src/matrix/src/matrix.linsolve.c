@@ -43,13 +43,8 @@ void MATRIX(_linsolve)(T *          _A,
 	if( Mode == 0 )
 	{
 		T A_inv[_n*_n];
-		clock_t start, stop;
-		double t = 0.0;
 		memmove(A_inv, _A, _n*_n*sizeof(T));
-		start = clock();
 		MATRIX(_inv)(A_inv,_n,_n);
-		stop = clock();
-		t = (double) (stop-start)/CLOCKS_PER_SEC;
 		MATRIX(_mul)(A_inv, _n, _n,
 					 _b,    _n,  1,
 					 _x,    _n,  1);
@@ -112,8 +107,6 @@ void MATRIX(_linsolve_par )(T *          _A,
 		int rank;
 		MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 		T A_inv[_n*_n];
-		clock_t start, stop;
-		double t = 0.0;
 		memmove(A_inv, _A, _n*_n*sizeof(T));
 		MATRIX(_inv_par)(A_inv,_n,_n,counts,offsets);
 		MPI_Bcast(_b, _n ,  MPI_FLOAT , 0 , MPI_COMM_WORLD  );

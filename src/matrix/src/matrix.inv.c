@@ -32,9 +32,7 @@ void MATRIX(_inv)(T * _X, unsigned int _XR, unsigned int _XC)
         fprintf(stderr, "error: matrix_inv(), invalid dimensions\n");
         exit(1);
     }
-    clock_t start,stop;
-    	double  t = 0.0f;
-    	
+    
     // X:
     //  x11 x12 ... x1n
     //  x21 x22 ... x2n
@@ -68,7 +66,7 @@ void MATRIX(_inv)(T * _X, unsigned int _XR, unsigned int _XC)
     //  0   1   ... 0   y21 y22 ... y2n
     //  ...
     //  0   0   ... 1   yn1 yn2 ... ynn
-    	start = clock();
+    
     MATRIX(_gjelim)(x,xr,xc);
     // copy result from right half of x
     for (r=0; r<_XR; r++) {
@@ -85,8 +83,7 @@ void MATRIX(_gjelim)(T * _X, unsigned int _XR, unsigned int _XC)
     float v_max=0.;
     unsigned int r_opt=0;
     unsigned int r_hat;
-    clock_t start,stop;
-    double  t = 0.0f;
+    
     for (r=0; r<_XR; r++) {
 
 		// check values along this column and find the optimal row
@@ -184,8 +181,6 @@ void MATRIX(_inv_par)(T * _X, unsigned int _XR, unsigned int _XC , int *counts, 
 	unsigned int xr = _XR / size ;
 	unsigned int xc = _XC*2;
 	unsigned int r,c;
-	clock_t start,stop;
-	double  t = 0.0f;
 	
     /*
      * allocate the local matrix of each mpi process
@@ -248,8 +243,8 @@ void MATRIX(_inv_par)(T * _X, unsigned int _XR, unsigned int _XC , int *counts, 
      * only master does the gauss thing
      * we ll see about that
      */
-	start = clock();
-	MPI_Bcast( X, 2*_XR*_XC , MPI_FLOAT , 0 , MPI_COMM_WORLD );
+	
+    MPI_Bcast( X, 2*_XR*_XC , MPI_FLOAT , 0 , MPI_COMM_WORLD );
 	
 	MATRIX(_gjelim_par)(X,_XR,xc);
 	
@@ -295,7 +290,7 @@ void MATRIX(_gjelim_par)(T * _X, unsigned int _XR, unsigned int _XC)
      */
     
     int _xr = _XR/size;
-    float _x[_xr*_XC];
+    T _x[_xr*_XC];
     int counts[size],offsets[size];
     
     for(i = 0;i < size;i++)
@@ -308,14 +303,10 @@ void MATRIX(_gjelim_par)(T * _X, unsigned int _XR, unsigned int _XC)
                  				0, MPI_COMM_WORLD);
     
 	MPI_Status status;
-	MPI_Request request;
 	int limSup = (rank + 1)*_xr -1;
 	int limInf = rank *_xr;
 	int start = 0 ;
-	clock_t startcl,stop;
-	double  t = 0.0f;
 	int aux = rank*_xr;
-	
 	
 	for (r=0; r<_XR; r++) 
 	{
@@ -446,10 +437,7 @@ void MATRIX(_gjelim_par2)(T * _X, unsigned int _XR, unsigned int _XC)
 	int limSup = (rank + 1)*_xr -1;
 	int limInf = rank *_xr;
 	int start = 0 ;
-	clock_t startcl,stop;
-	double  t = 0.0f;
 	int aux = rank*_xr;
-	startcl = clock();
 	for (r=0; r<_XR; r++) 
 	{
     	start = 0;
@@ -520,13 +508,9 @@ void MATRIX(_gjelim_par2)(T * _X, unsigned int _XR, unsigned int _XC)
 			 * after all modification master has to inform slaves
 			 */
 		}
-		stop = clock();
-		t = (double) (stop-startcl);
 		MPI_Scatterv( _X , counts, offsets, MPI_FLOAT , _x , counts[rank] , MPI_FLOAT ,
 														0, MPI_COMM_WORLD);
 		
-		stop = clock();
-		t = (double) (stop-startcl);
 	}
 
 	// scale by diagonal
@@ -543,13 +527,13 @@ void MATRIX(_gjelim_par2)(T * _X, unsigned int _XR, unsigned int _XC)
 }
 
 // pivot on element _r, _c
-void MATRIX(_pivot_mpi)(float * _X, unsigned int _XR, unsigned int _XC, unsigned int _r, unsigned int _c)
+void MATRIX(_pivot_mpi)(T * _X, unsigned int _XR, unsigned int _XC, unsigned int _r, unsigned int _c)
 {
     float v = 0.0f ;
     int probably_me = _r/_XR;
     int rank ;
     int i,size ; 
-    float *aux=calloc(_XC, sizeof(float));
+    T *aux=calloc(_XC, sizeof(float));
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     MPI_Status status;

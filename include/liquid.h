@@ -3398,7 +3398,7 @@ void MATRIX(_pivot)(T * _x,                                     \
                unsigned int _cx,                                \
                unsigned int _r,                                 \
                unsigned int _c);                                \
-void MATRIX(_pivot_mpi)(float * _x,                                     \
+void MATRIX(_pivot_mpi)(T * _x,                                     \
 			  unsigned int _rx,                                \
 			  unsigned int _cx,                                \
 			  unsigned int _r,                                 \

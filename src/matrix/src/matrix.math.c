@@ -256,10 +256,7 @@ void MATRIX(_mul_transpose)(T * _x,
     // clear _xxT
     for (i=0; i<_m*_m; i++)
         _xxT[i] = 0.0f;
-    clock_t stop;
-        double t ;
-       clock_t start = clock();
-	for (r=0; r<_m; r++) {
+    for (r=0; r<_m; r++) {
 		
 		for (c=0; c<_m; c++) {
 			T sum = 0.0f;
@@ -272,10 +269,6 @@ void MATRIX(_mul_transpose)(T * _x,
 			matrix_access(_xxT,_m,_m,r,c) = sum;
 		}
 	}
-	stop = clock();
-	t = stop-start;
-	//printf("t is %f \n",t);
-    
 }
 
 // compute x*x' on m x n matrix, result: m x m
@@ -287,12 +280,10 @@ void MATRIX(_mul_transpose_omp)(T * _x,
 	unsigned int r;
 	unsigned int c;
 	unsigned int i;
-	unsigned int chunk;
 	// clear _xxT
 	for (i=0; i<_m*_m; i++)
 		_xxT[i] = 0.0f;
-	int threads = omp_get_num_threads();
-	chunk = _m*_n/threads;
+
 #pragma omp parallel for schedule( static , 250 )
 		for (r=0; r<_m; r++) 
 		{

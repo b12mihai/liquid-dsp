@@ -201,11 +201,6 @@ void MATRIX(_cgsolve_par)(T * _A,
         exit(1);
     }
 
-  
-    clock_t start, stop;
-    double t = 0.0;
-        
-    
     // options
     unsigned int max_iterations = 4*_n; // maximum number of iterations
     double tol = 1e-6;                  // error tolerance
@@ -254,7 +249,6 @@ void MATRIX(_cgsolve_par)(T * _A,
 		{
 			// delta_init = b^T * b			 
 			MATRIX(_transpose_mul_omp)(_b, _n, 1, &delta_init_pr);
-			int thr = omp_get_thread_num();
 			// delta0 = r0^T * r0
 			MATRIX(_transpose_mul_omp)(r0, _n, 1, &delta0_pr);
 		}
@@ -366,19 +360,6 @@ void MATRIX(_cgsolve_par)(T * _A,
         }
 
         // delta1 = r1^T * r1
-//        T delta1_pr = 0.0f;
-//        if( rank == 0 )
-//		{
-//			#pragma omp parallel reduction(+:delta1_pr)
-//			{
-//				// delta_init = b^T * b			 
-//				MATRIX(_transpose_mul_omp)(r1 , _n, 1, &delta1_pr);
-//			}
-//			delta1 = delta1_pr;
-//			printf("delta 1 %f \n",delta1);
-//		}
-//        
-//        MPI_Bcast( &delta1 , 1 , MPI_FLOAT , 0, MPI_COMM_WORLD);
         MATRIX(_transpose_mul)(r1, _n, 1, &delta1);
         
 		
