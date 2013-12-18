@@ -93,13 +93,15 @@ void FFT(_execute_REDFT00)(FFT(plan) _q)
     unsigned int i,k;
     float n_inv = 1.0f / (float)(_q->nfft-1);
     float phi;
-    for (i=0; i<_q->nfft; i++) {
+    for (i = 0; i < _q->nfft; i++) {
         T x0 = _q->xr[0];       // first element
-        T xn = _q->xr[_q->nfft-1]; // last element
-        _q->yr[i] = 0.5f*( x0 + (i%2 ? -xn : xn));
-        for (k=1; k<_q->nfft-1; k++) {
-            phi = M_PI*n_inv*((float)k)*((float)i);
-            _q->yr[i] += _q->xr[k]*cosf(phi);
+        T xn = _q->xr[_q->nfft - 1]; // last element
+
+        _q->yr[i] = 0.5f * ( x0 + (i % 2 ? -xn : xn));
+
+        for (k = 1; k < _q->nfft-1; k++) {
+            phi = M_PI * n_inv * ((float)k) * ((float)i);
+            _q->yr[i] += _q->xr[k] * cosf(phi);
         }
 
         // compensate for discrepancy

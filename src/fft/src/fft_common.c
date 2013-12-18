@@ -113,6 +113,8 @@ FFT(plan) FFT(_create_plan)(unsigned int _nfft,
     // TODO : check flags and allow user override
     liquid_fft_method method = liquid_fft_estimate_method(_nfft);
 
+    //printf("Method is: %d \n", method);
+
     // initialize fft based on method
     switch (method) {
     case LIQUID_FFT_METHOD_RADIX2:
