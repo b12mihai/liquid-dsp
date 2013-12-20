@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "liquid.internal.h"
+#include <omp.h>
 
 // create FFT plan for regular DFT
 //  _nfft   :   FFT size
@@ -82,6 +83,7 @@ FFT(plan) FFT(_create_plan_dft)(unsigned int _nfft,
         unsigned int i;
         unsigned int k;
         T d = (q->direction == LIQUID_FFT_FORWARD) ? -1.0 : 1.0;
+#pragma omp for schedule(static, 100)
         for (i=0; i<q->nfft; i++) {
             // initialize twiddle factors
             // NOTE: no need to compute first twiddle because exp(-j*2*pi*0) = 1
@@ -121,29 +123,50 @@ void FFT(_destroy_plan_dft)(FFT(plan) _q)
 void FFT(_execute_dft)(FFT(plan) _q)
 {
     unsigned int i;
+    unsigned int k;
     unsigned int nfft = _q->nfft;
+    float tmp;
+    _q->y[0] = _q->x[0];
+    tmp = _q->y[0];
 
 #if 0
+#pragma omp parallel reduction(+:tmp)
+{
     // DC value is sum of input
-    _q->y[0] = _q->x[0];
+
+#pragma omp for schedule(static, 100)
     for (i=1; i<nfft; i++)
-        _q->y[0] += _q->x[i];
-    
+        tmp += _q->x[i];
+
+    _q->y[0] = tmp;
+
     // compute remaining DFT values
-    unsigned int k;
+#pragma omp for schedule(static, 100)
     for (i=1; i<nfft; i++) {
         _q->y[i] = _q->x[0];
         for (k=1; k<nfft; k++) {
-            _q->y[i] += _q->x[k] * _q->data.dft.twiddle[(i*k)%_q->nfft];
+            tmp += _q->x[k] * _q->data.dft.twiddle[(i*k)%_q->nfft];
         }
+#pragma omp single
+       {
+        	_q->x[i] = tmp;
+       }
     }
+}
 #else
     // use vector dot products
     // NOTE: no need to compute first multiplication because exp(-j*2*pi*0) = 1
+#pragma omp parallel for schedule(static, 100) reduction(+:tmp)
     for (i=0; i<nfft; i++) {
         DOTPROD(_execute)(_q->data.dft.dotprod[i], &_q->x[1], &_q->y[i]);
-        _q->y[i] += _q->x[0];
+        tmp += _q->x[0];
+#pragma omp single //sau pragma omp critical
+        {
+        	tmp = _q->y[i];
+        }
     }
+
+
 #endif
 }
 

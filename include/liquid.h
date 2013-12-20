@@ -3334,13 +3334,23 @@ void MATRIX(_hermitian)(T * _x,                                 \
                         unsigned int _rx,                       \
                         unsigned int _cx);                      \
                                                                 \
-/* compute x*x' on [m x n] matrix, result: [m x m]          */  \
+/* compute x*x' on [m x n] matrix, result: [m x m] with pragma omp          */  \
 void MATRIX(_mul_transpose)(T * _x,                             \
+                            unsigned int _m,                    \
+                            unsigned int _n,                    \
+                            T * _xxT);                          \
+/* compute x*x' on [m x n] matrix, result: [m x m] with pragma omp          */  \
+void MATRIX(_mul_transpose_omp)(T * _x,                             \
                             unsigned int _m,                    \
                             unsigned int _n,                    \
                             T * _xxT);                          \
 /* compute x'*x on [m x n] matrix, result: [n x n]          */  \
 void MATRIX(_transpose_mul)(T * _x,                             \
+                            unsigned int _m,                    \
+                            unsigned int _n,                    \
+                            T * _xTx);                          \
+/* compute x'*x on [m x n] matrix, result: [n x n]          */  \
+void MATRIX(_transpose_mul_omp)(T * _x,                             \
                             unsigned int _m,                    \
                             unsigned int _n,                    \
                             T * _xTx);                          \
@@ -3361,6 +3371,11 @@ void MATRIX(_aug)(T * _x, unsigned int _rx, unsigned int _cx,   \
 void MATRIX(_inv)(T * _x,                                       \
                   unsigned int _rx,                             \
                   unsigned int _cx);                            \
+void MATRIX(_inv_par)(T * _x,                                       \
+				unsigned int _rx,                             \
+				unsigned int _cx,							\
+				int *counts,								\
+				int *offsets);                            \
 void MATRIX(_eye)(T * _x,                                       \
                   unsigned int _n);                             \
 void MATRIX(_ones)(T * _x,                                      \
@@ -3372,11 +3387,22 @@ void MATRIX(_zeros)(T * _x,                                     \
 void MATRIX(_gjelim)(T * _x,                                    \
                      unsigned int _rx,                          \
                      unsigned int _cx);                         \
+void MATRIX(_gjelim_par)(T * _x,                               \
+				  unsigned int _rx,                          \
+				  unsigned int _cx);                         \
+void MATRIX(_gjelim_par2)(T * _x,                               \
+			  unsigned int _rx,                          \
+			  unsigned int _cx);                         \
 void MATRIX(_pivot)(T * _x,                                     \
                unsigned int _rx,                                \
                unsigned int _cx,                                \
                unsigned int _r,                                 \
                unsigned int _c);                                \
+void MATRIX(_pivot_mpi)(T * _x,                                     \
+			  unsigned int _rx,                                \
+			  unsigned int _cx,                                \
+			  unsigned int _r,                                 \
+			  unsigned int _c);                                \
 void MATRIX(_swaprows)(T * _x,                                  \
                   unsigned int _rx,                             \
                   unsigned int _cx,                             \
@@ -3386,12 +3412,32 @@ void MATRIX(_linsolve)(T * _A,                                  \
                        unsigned int _r,                         \
                        T * _b,                                  \
                        T * _x,                                  \
-                       void * _opts);                           \
+                       void * _opts,							\
+                       int Mode);                           	\
+void MATRIX(_linsolve_par)(T * _A,                               \
+					  unsigned int _r,                         \
+					  T * _b,                                  \
+					  T * _x,                                  \
+					  void * _opts,								\
+					  int *counts,								\
+					  int *offsets,								\
+					  int Mode);                           		\
 void MATRIX(_cgsolve)(T * _A,                                   \
                       unsigned int _r,                          \
                       T * _b,                                   \
                       T * _x,                                   \
                       void * _opts);                            \
+void MATRIX(_cgsolve_par)(T * _A,                               \
+					unsigned int _r,                          \
+					T * _b,                                   \
+					T * _x,										\
+					unsigned int _s,							\
+					int *c,										\
+					int *o,										\
+					int *lc,										\
+					int *lo,										\
+					int rank,									\
+					void * _opts);                            \
 void MATRIX(_ludecomp_crout)(T * _x,                            \
                              unsigned int _rx,                  \
                              unsigned int _cx,                  \

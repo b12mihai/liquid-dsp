@@ -144,6 +144,8 @@ void FFT(_execute_mixed_radix)(FFT(plan) _q)
 #if FFT_DEBUG_MIXED_RADIX
     printf("computing %u DFTs of size %u\n", Q, P);
 #endif
+
+#pragma omp for schedule(static, 100)
     for (i=0; i<Q; i++) {
         // copy to temporary buffer
         for (k=0; k<P; k++)
@@ -167,6 +169,8 @@ void FFT(_execute_mixed_radix)(FFT(plan) _q)
 #if DEBUG
     printf("computing %u DFTs of size %u\n", P, Q);
 #endif
+
+#pragma omp for schedule(static, 100)
     for (i=0; i<P; i++) {
         // copy to temporary buffer
         for (k=0; k<Q; k++)

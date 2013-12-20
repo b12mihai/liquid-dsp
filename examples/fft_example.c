@@ -13,6 +13,7 @@
 #include <getopt.h>
 #include "liquid.h"
 
+
 // print usage/help message
 void usage()
 {
@@ -28,8 +29,11 @@ int main(int argc, char*argv[])
     unsigned int nfft = 16; // transform size
     int method = 0;         // fft method (ignored)
     int verbose = 0;        // verbose output?
+    fftplan pf, pr;
+    int dopt; float rmse = 0.0f;
+    float complex d;
+    unsigned int i;
 
-    int dopt;
     while ((dopt = getopt(argc,argv,"hvqn:")) != EOF) {
         switch (dopt) {
         case 'h': usage();              return 0;
@@ -45,32 +49,32 @@ int main(int argc, char*argv[])
     float complex * x = (float complex*) malloc(nfft*sizeof(float complex));
     float complex * y = (float complex*) malloc(nfft*sizeof(float complex));
     float complex * z = (float complex*) malloc(nfft*sizeof(float complex));
-
-    // initialize input
-    unsigned int i;
     for (i=0; i<nfft; i++)
         x[i] = (float)i - _Complex_I*(float)i;
 
     // create fft plans
-    fftplan pf = fft_create_plan(nfft, x, y, LIQUID_FFT_FORWARD,  method);
-    fftplan pr = fft_create_plan(nfft, y, z, LIQUID_FFT_BACKWARD, method);
-
-    // print fft plans
-    fft_print_plan(pf);
-    //fft_print_plan(pr);
+    pf = fft_create_plan(nfft, x, y, LIQUID_FFT_FORWARD,  method);
+    pr = fft_create_plan(nfft, y, z, LIQUID_FFT_BACKWARD, method);
 
     // execute fft plans
     fft_execute(pf);
     fft_execute(pr);
 
-    // destroy fft plans
-    fft_destroy_plan(pf);
-    fft_destroy_plan(pr);
-
     // normalize inverse
     for (i=0; i<nfft; i++)
         z[i] /= (float) nfft;
-
+    // initialize input
+#pragma omp parallel
+{
+    // compute RMSE between original and result
+#pragma omp for reduction(+:rmse) private(i, d)
+    for (i=0; i<nfft; i++) {
+        d = x[i] - z[i];
+        rmse += crealf(d * conjf(d));
+    }
+}
+    rmse = sqrtf( rmse / (float)nfft );
+    printf("rmse = %12.4e\n", rmse);
     if (verbose) {
         // print results
         printf("original signal, x[n]:\n");
@@ -83,15 +87,9 @@ int main(int argc, char*argv[])
         for (i=0; i<nfft; i++)
             printf("  z[%3u] = %8.4f + j%8.4f\n", i, crealf(z[i]), cimagf(z[i]));
     }
-
-    // compute RMSE between original and result
-    float rmse = 0.0f;
-    for (i=0; i<nfft; i++) {
-        float complex d = x[i] - z[i];
-        rmse += crealf(d * conjf(d));
-    }
-    rmse = sqrtf( rmse / (float)nfft );
-    printf("rmse = %12.4e\n", rmse);
+    // destroy fft plans
+    fft_destroy_plan(pf);
+    fft_destroy_plan(pr);
 
     // free allocated memory
     free(x);

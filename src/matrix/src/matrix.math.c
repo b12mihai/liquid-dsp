@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <omp.h>
 // add elements of two matrices
 //  _X      :   1st input matrix [size: _R x _C]
 //  _Y      :   2nd input matrix [size: _R x _C]
@@ -104,15 +104,23 @@ void MATRIX(_mul)(T * _X, unsigned int _XR, unsigned int _XC,
         fprintf(stderr,"error: matrix_mul(), invalid dimensions\n");
         exit(1);
     }
-
+ 
     unsigned int r, c, i;
+    
+ //#pragma omp parallel for schedule(dynamic,100)
     for (r=0; r<_ZR; r++) {
+/*
+        int threads = omp_get_thread_num();
+        printf("Thread id is %d %d %d %d \n",  threads , r ,_ZC, _ZR );
+        threads = omp_get_num_threads();
+        printf("What %d %d \n",  threads , r );
+*/
         for (c=0; c<_ZC; c++) {
             // z(i,j) = dotprod( x(i,:), y(:,j) )
             T sum=0.0f;
             for (i=0; i<_XC; i++) {
                 sum += matrix_access(_X,_XR,_XC,r,i) *
-                       matrix_access(_Y,_YR,_YC,i,c);
+                             matrix_access(_Y,_YR,_YC,i,c);
             }
             matrix_access(_Z,_ZR,_ZC,r,c) = sum;
 #ifdef DEBUG
@@ -235,6 +243,7 @@ void MATRIX(_hermitian)(T * _X,
     }
 }
 
+
 // compute x*x' on m x n matrix, result: m x m
 void MATRIX(_mul_transpose)(T * _x,
                             unsigned int _m,
@@ -244,29 +253,82 @@ void MATRIX(_mul_transpose)(T * _x,
     unsigned int r;
     unsigned int c;
     unsigned int i;
-
     // clear _xxT
     for (i=0; i<_m*_m; i++)
         _xxT[i] = 0.0f;
-
-    // 
-    T sum = 0;
     for (r=0; r<_m; r++) {
+		
+		for (c=0; c<_m; c++) {
+			T sum = 0.0f;
+			
+			for (i=0; i<_n; i++) {
+				sum +=        matrix_access(_x,_m,_n,r,i) *
+					   conjf( matrix_access(_x,_m,_n,c,i) );
+			}
+			
+			matrix_access(_xxT,_m,_m,r,c) = sum;
+		}
+	}
+}
 
-        for (c=0; c<_m; c++) {
-            sum = 0.0f;
+// compute x*x' on m x n matrix, result: m x m
+void MATRIX(_mul_transpose_omp)(T * _x,
+                            unsigned int _m,
+                            unsigned int _n,
+                            T * _xxT)
+{
+	unsigned int r;
+	unsigned int c;
+	unsigned int i;
+	// clear _xxT
+	for (i=0; i<_m*_m; i++)
+		_xxT[i] = 0.0f;
 
-            for (i=0; i<_n; i++) {
-                sum +=        matrix_access(_x,_m,_n,r,i) *
-                       conjf( matrix_access(_x,_m,_n,c,i) );
+#pragma omp parallel for schedule( static , 250 )
+		for (r=0; r<_m; r++) 
+		{
+			for (c=0; c<_m; c++) {
+				T sum = 0.0f;				
+				for (i=0; i<_n; i++) 
+				{
+					sum +=        matrix_access(_x,_m,_n,r,i) *
+						   conjf( matrix_access(_x,_m,_n,c,i) );
+				}
+				matrix_access(_xxT,_m,_m,r,c) = sum;
+			}
+		}
+}
+
+// compute x'*x on m x n matrix, result: n x n
+void MATRIX(_transpose_mul_omp)(T * _x,
+                            unsigned int _m,
+                            unsigned int _n,
+                            T * _xTx)
+{
+    unsigned int r;
+    unsigned int c;
+    unsigned int i;
+
+    // clear _xTx
+    
+    for (i=0; i<_n*_n; i++)
+        _xTx[i] = 0.0f;
+ 
+#pragma omp for schedule(static,100) 
+    for (r=0; r<_n; r++) {
+
+        for (c=0; c<_n; c++) {
+            T sum = 0.0f;
+
+            for (i=0; i<_m; i++) {
+                sum += conjf( matrix_access(_x,_m,_n,i,r) ) *
+                              matrix_access(_x,_m,_n,i,c);
             }
 
-            matrix_access(_xxT,_m,_m,r,c) = sum;
+            matrix_access(_xTx,_n,_n,r,c) = sum;
         }
     }
 }
-
-
 // compute x'*x on m x n matrix, result: n x n
 void MATRIX(_transpose_mul)(T * _x,
                             unsigned int _m,
@@ -297,7 +359,6 @@ void MATRIX(_transpose_mul)(T * _x,
         }
     }
 }
-
 
 // compute x*x.' on m x n matrix, result: m x m
 void MATRIX(_mul_hermitian)(T * _x,
